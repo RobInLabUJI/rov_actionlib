@@ -22,7 +22,7 @@ find_package(catkin REQUIRED
 add_action_files(DIRECTORY action FILES Shape.action Pose.action)
 
 ## Generate messages and actions
-generate_messages(DEPENDENCIES std_msgs geometry_msgs actionlib_msgs)
+generate_messages(DEPENDENCIES std_msgs geometry_msgs turtlesim actionlib_msgs)
 
 ## Setup catkin exports
 catkin_package()

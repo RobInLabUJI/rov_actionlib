@@ -6,7 +6,6 @@
 #include <angles/angles.h>
 
 #include <geometry_msgs/Twist.h>
-#include <geometry_msgs/Pose.h>
 #include <rov_actionlib/PoseAction.h>
 
 // This class computes the command_velocities of the turtle to draw regular polygons 
@@ -128,7 +127,7 @@ protected:
   double dis_error_, theta_error_;
   int edges_ , edge_progress_;
   bool start_edge_;
-  geometry_msgs::Pose pose_;
+  turtlesim::Pose pose_;
   geometry_msgs::Twist command_;
   rov_actionlib::PoseResult result_;
   ros::Subscriber sub_;

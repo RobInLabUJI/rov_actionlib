@@ -1,7 +1,7 @@
 #goal definition
 int32 edges
 float32 radius
-geometry_msgs/Pose pose
+turtlesim/Pose pose
 ---
 #result definition
 float32 interior_angle
