@@ -6,35 +6,35 @@
 #include <angles/angles.h>
 
 #include <geometry_msgs/Twist.h>
-#include <turtle_actionlib/ShapeAction.h>
+#include <rov_actionlib/PoseAction.h>
 
 // This class computes the command_velocities of the turtle to draw regular polygons 
-class ShapeAction
+class PoseAction
 {
 public:
-  ShapeAction(std::string name) : 
+  PoseAction(std::string name) : 
     as_(nh_, name, false),
     action_name_(name)
   {
     //register the goal and feeback callbacks
-    as_.registerGoalCallback(boost::bind(&ShapeAction::goalCB, this));
-    as_.registerPreemptCallback(boost::bind(&ShapeAction::preemptCB, this));
+    as_.registerGoalCallback(boost::bind(&PoseAction::goalCB, this));
+    as_.registerPreemptCallback(boost::bind(&PoseAction::preemptCB, this));
 
     //subscribe to the data topic of interest
-    sub_ = nh_.subscribe("/turtle1/pose", 1, &ShapeAction::controlCB, this);
+    sub_ = nh_.subscribe("/turtle1/pose", 1, &PoseAction::controlCB, this);
     pub_ = nh_.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel", 1);
 
     as_.start();
   }
 
-  ~ShapeAction(void)
+  ~PoseAction(void)
   {
   }
 
   void goalCB()
   {
     // accept the new goal
-    turtle_actionlib::ShapeGoal goal = *as_.acceptNewGoal();
+    rov_actionlib::PoseGoal goal = *as_.acceptNewGoal();
     //save the goal as private variables
     edges_ = goal.edges;
     radius_ = goal.radius;
@@ -119,7 +119,7 @@ public:
 
 protected:
   ros::NodeHandle nh_;
-  actionlib::SimpleActionServer<turtle_actionlib::ShapeAction> as_;
+  actionlib::SimpleActionServer<rov_actionlib::PoseAction> as_;
   std::string action_name_;
   double radius_, apothem_, interior_angle_, side_len_;
   double start_x_, start_y_, start_theta_;
@@ -127,16 +127,16 @@ protected:
   int edges_ , edge_progress_;
   bool start_edge_;
   geometry_msgs::Twist command_;
-  turtle_actionlib::ShapeResult result_;
+  rov_actionlib::PoseResult result_;
   ros::Subscriber sub_;
   ros::Publisher pub_;
 };
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "turtle_shape");
+  ros::init(argc, argv, "turtle_pose");
 
-  ShapeAction shape(ros::this_node::getName());
+  PoseAction shape(ros::this_node::getName());
   ros::spin();
 
   return 0;
