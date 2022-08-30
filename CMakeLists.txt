@@ -16,7 +16,7 @@ find_package(catkin REQUIRED
 )
 
 ## Add message definitions
-add_message_files(DIRECTORY msg FILES Velocity.msg)
+# add_message_files(DIRECTORY msg FILES Velocity.msg)
 
 ## Add action definitions
 add_action_files(DIRECTORY action FILES Shape.action Pose.action)
