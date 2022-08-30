@@ -39,7 +39,8 @@ public:
     edges_ = goal.edges;
     radius_ = goal.radius;
     pose_ = goal.pose;
-
+    turning_ = true;
+    
     // reset helper variables
     interior_angle_ = ((edges_-2)*M_PI)/edges_;
     apothem_ = radius_*cos(M_PI/edges_);
@@ -64,7 +65,23 @@ public:
     // make sure that the action hasn't been canceled
     if (!as_.isActive())
       return;
-  
+    
+    command_.linear.x = 0;
+    command_.angular.z = 0;
+    dis_error_ = fabs(sqrt((pose_.x- msg->x)*(pose_.x-msg->x) + (pose_.y-msg->y)*(pose_.y-msg->y)));     
+    theta_error_ = angles::normalize_angle(msg->theta - pose_.theta);    
+    ROS_INFO("Dist error: %f", dis_error_);
+    ROS_INFO("Theta error: %f", theta_error_);
+    if (turning_)
+    {
+    }
+    else
+    {
+    
+    }
+    pub_.publish(command_);
+    return;
+          
     if (edge_progress_ < edges_)
     {
       // scalar values for drive the turtle faster and straighter
@@ -127,6 +144,7 @@ protected:
   double dis_error_, theta_error_;
   int edges_ , edge_progress_;
   bool start_edge_;
+  bool turning_;
   turtlesim::Pose pose_;
   geometry_msgs::Twist command_;
   rov_actionlib::PoseResult result_;
