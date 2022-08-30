@@ -19,7 +19,7 @@ find_package(catkin REQUIRED
 add_message_files(DIRECTORY msg FILES Velocity.msg)
 
 ## Add action definitions
-add_action_files(DIRECTORY action FILES Shape.action)
+add_action_files(DIRECTORY action FILES Shape.action Goal.action)
 
 ## Generate messages and actions
 generate_messages(DEPENDENCIES std_msgs actionlib_msgs)
@@ -35,13 +35,18 @@ add_executable(shape_server src/shape_server.cpp)
 target_link_libraries(shape_server ${catkin_LIBRARIES})
 add_dependencies(shape_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+## goal_server executable
+add_executable(goal_server src/goal_server.cpp)
+target_link_libraries(goal_server ${catkin_LIBRARIES})
+add_dependencies(goal_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 ## shape_client executable
 add_executable(shape_client src/shape_client.cpp)
 target_link_libraries(shape_client ${catkin_LIBRARIES})
 add_dependencies(shape_client ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Mark executables for installation
-install(TARGETS shape_server shape_client
+install(TARGETS shape_server goal_server shape_client
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
