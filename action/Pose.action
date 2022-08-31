@@ -1,11 +1,8 @@
 #goal definition
-int32 edges
-float32 radius
 turtlesim/Pose pose
 ---
 #result definition
-float32 interior_angle
-float32 apothem
+float32 dis_error
 ---
 #feedback
 

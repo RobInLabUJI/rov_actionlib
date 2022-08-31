@@ -36,22 +36,22 @@ public:
     // accept the new goal
     rov_actionlib::PoseGoal goal = *as_.acceptNewGoal();
     //save the goal as private variables
-    edges_ = goal.edges;
-    radius_ = goal.radius;
+    // edges_ = goal.edges;
+    // radius_ = goal.radius;
     pose_ = goal.pose;
     turning_ = true;
     prv_dis_error = 1000000;
     
     // reset helper variables
-    interior_angle_ = ((edges_-2)*M_PI)/edges_;
-    apothem_ = radius_*cos(M_PI/edges_);
+    // interior_angle_ = ((edges_-2)*M_PI)/edges_;
+    // apothem_ = radius_*cos(M_PI/edges_);
     //compute the side length of the polygon
-    side_len_ = apothem_ * 2* tan( M_PI/edges_);
-    //store the result values
-    result_.apothem = apothem_;
-    result_.interior_angle = interior_angle_;
-    edge_progress_ =0;
-    start_edge_ = true;
+    // side_len_ = apothem_ * 2* tan( M_PI/edges_);
+    // store the result values
+    // result_.apothem = apothem_;
+    // result_.interior_angle = interior_angle_;
+    // edge_progress_ =0;
+    // start_edge_ = true;
   }
 
   void preemptCB()
@@ -103,74 +103,23 @@ public:
       {
         ROS_INFO("%s: Succeeded", action_name_.c_str());
         // set the action state to succeeded
+        result_.dis_error = dis_error_;
         as_.setSucceeded(result_);
       }
     }
     pub_.publish(command_);
-    return;
-          
-    if (edge_progress_ < edges_)
-    {
-      // scalar values for drive the turtle faster and straighter
-      double l_scale = 6.0;
-      double a_scale = 6.0;
-      double error_tol = 0.00001;
 
-      if (start_edge_)
-      {
-        start_x_ = msg->x;
-        start_y_ = msg->y;
-        start_theta_ = msg->theta;
-        start_edge_ = false;
-      }
-
-      // compute the distance and theta error for the shape
-      dis_error_ = side_len_ - fabs(sqrt((start_x_- msg->x)*(start_x_-msg->x) + (start_y_-msg->y)*(start_y_-msg->y)));
-      theta_error_ = angles::normalize_angle_positive(M_PI - interior_angle_ - (msg->theta - start_theta_));
-     
-      if (dis_error_ > error_tol)
-      {
-        command_.linear.x = l_scale*dis_error_;
-        command_.angular.z = 0;
-      }
-      else if (dis_error_ < error_tol && fabs(theta_error_)> error_tol)
-      { 
-        command_.linear.x = 0;
-        command_.angular.z = a_scale*theta_error_;
-      }
-      else if (dis_error_ < error_tol && fabs(theta_error_)< error_tol)
-      {
-        command_.linear.x = 0;
-        command_.angular.z = 0;
-        start_edge_ = true;
-        edge_progress_++;
-      }  
-      else
-      {
-        command_.linear.x = l_scale*dis_error_;
-        command_.angular.z = a_scale*theta_error_;
-      } 
-      // publish the velocity command
-      pub_.publish(command_);
-      
-    } 
-    else
-    {          
-      ROS_INFO("%s: Succeeded", action_name_.c_str());
-      // set the action state to succeeded
-      as_.setSucceeded(result_);
-    }   
   }
 
 protected:
   ros::NodeHandle nh_;
   actionlib::SimpleActionServer<rov_actionlib::PoseAction> as_;
   std::string action_name_;
-  double radius_, apothem_, interior_angle_, side_len_;
+  // double radius_, apothem_, interior_angle_, side_len_;
   double start_x_, start_y_, start_theta_;
   double dis_error_, theta_error_, heading_, prv_dis_error;
-  int edges_ , edge_progress_;
-  bool start_edge_;
+  // int edges_ , edge_progress_;
+  // bool start_edge_;
   bool turning_;
   turtlesim::Pose pose_;
   geometry_msgs::Twist command_;
