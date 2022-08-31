@@ -40,6 +40,7 @@ public:
     radius_ = goal.radius;
     pose_ = goal.pose;
     turning_ = true;
+    prv_dis_error = 1000000;
     
     // reset helper variables
     interior_angle_ = ((edges_-2)*M_PI)/edges_;
@@ -68,16 +69,42 @@ public:
     
     command_.linear.x = 0;
     command_.angular.z = 0;
-    dis_error_ = fabs(sqrt((pose_.x- msg->x)*(pose_.x-msg->x) + (pose_.y-msg->y)*(pose_.y-msg->y)));     
-    theta_error_ = angles::normalize_angle(msg->theta - pose_.theta);    
+    dis_error_ = fabs(sqrt((pose_.x-msg->x)*(pose_.x-msg->x) + (pose_.y-msg->y)*(pose_.y-msg->y)));    
+    heading_ = atan2(pose_.y-msg->y, pose_.x-msg->x); 
+    theta_error_ = angles::normalize_angle(heading_ - msg->theta);    
     ROS_INFO("Dist error: %f", dis_error_);
+    ROS_INFO("Heading: %f", heading_);
     ROS_INFO("Theta error: %f", theta_error_);
     if (turning_)
     {
+      double a_scale = 6.0;
+      double error_tol = 0.00001;
+      if (fabs(theta_error_) > error_tol)
+      {
+        command_.linear.x = 0;
+        command_.angular.z = a_scale*theta_error_;
+      }
+      else 
+      {
+        turning_ = false;
+      }
     }
     else
     {
-    
+      double l_scale = 6.0;
+      double error_tol = 0.00001;
+      if ((dis_error_ > error_tol) && (dis_error_ < prv_dis_error))
+      {
+        command_.linear.x = l_scale*dis_error_;
+        command_.angular.z = 0;
+        prv_dis_error = dis_error_;
+      }
+      else
+      {
+        ROS_INFO("%s: Succeeded", action_name_.c_str());
+        // set the action state to succeeded
+        as_.setSucceeded(result_);
+      }
     }
     pub_.publish(command_);
     return;
@@ -141,7 +168,7 @@ protected:
   std::string action_name_;
   double radius_, apothem_, interior_angle_, side_len_;
   double start_x_, start_y_, start_theta_;
-  double dis_error_, theta_error_;
+  double dis_error_, theta_error_, heading_, prv_dis_error;
   int edges_ , edge_progress_;
   bool start_edge_;
   bool turning_;
