@@ -8,7 +8,6 @@
 #include <geometry_msgs/Twist.h>
 #include <rov_actionlib/PoseAction.h>
 
-// This class computes the command_velocities of the turtle to draw regular polygons 
 class PoseAction
 {
 public:
@@ -35,23 +34,10 @@ public:
   {
     // accept the new goal
     rov_actionlib::PoseGoal goal = *as_.acceptNewGoal();
-    //save the goal as private variables
-    // edges_ = goal.edges;
-    // radius_ = goal.radius;
+
     pose_ = goal.pose;
     turning_ = true;
     prv_dis_error = 1000000;
-    
-    // reset helper variables
-    // interior_angle_ = ((edges_-2)*M_PI)/edges_;
-    // apothem_ = radius_*cos(M_PI/edges_);
-    //compute the side length of the polygon
-    // side_len_ = apothem_ * 2* tan( M_PI/edges_);
-    // store the result values
-    // result_.apothem = apothem_;
-    // result_.interior_angle = interior_angle_;
-    // edge_progress_ =0;
-    // start_edge_ = true;
   }
 
   void preemptCB()
@@ -115,11 +101,7 @@ protected:
   ros::NodeHandle nh_;
   actionlib::SimpleActionServer<rov_actionlib::PoseAction> as_;
   std::string action_name_;
-  // double radius_, apothem_, interior_angle_, side_len_;
-  double start_x_, start_y_, start_theta_;
   double dis_error_, theta_error_, heading_, prv_dis_error;
-  // int edges_ , edge_progress_;
-  // bool start_edge_;
   bool turning_;
   turtlesim::Pose pose_;
   geometry_msgs::Twist command_;
