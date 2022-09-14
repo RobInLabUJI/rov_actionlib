@@ -30,6 +30,11 @@ catkin_package()
 ## Set include dirs
 include_directories(${catkin_INCLUDE_DIRS})
 
+## rov goal_server executable
+add_executable(rov_pose_server src/rov_pose_server.cpp)
+target_link_libraries(rov_pose_server ${catkin_LIBRARIES})
+add_dependencies(rov_pose_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 ## shape_server executable
 add_executable(shape_server src/shape_server.cpp)
 target_link_libraries(shape_server ${catkin_LIBRARIES})
@@ -46,7 +51,7 @@ target_link_libraries(shape_client ${catkin_LIBRARIES})
 add_dependencies(shape_client ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Mark executables for installation
-install(TARGETS shape_server pose_server shape_client
+install(TARGETS shape_server pose_server shape_client rov_pose_server
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
