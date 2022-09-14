@@ -5,7 +5,8 @@
 #include <math.h>
 #include <angles/angles.h>
 
-#include <geometry_msgs/Twist.h>
+//#include <geometry_msgs/Twist.h>
+#include <mavros_msgs/ManualControl.h>
 #include <rov_actionlib/PoseAction.h>
 
 class PoseAction
@@ -21,8 +22,8 @@ public:
 
     //subscribe to the data topic of interest
     sub_ = nh_.subscribe("/turtle1/pose", 1, &PoseAction::controlCB, this);
-    pub_ = nh_.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel", 1);
-
+    // pub_ = nh_.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel", 1);
+    pub_ = nh_.advertise<mavros_msgs::ManualControl>("/mavros/manual_control/send", 1);
     as_.start();
   }
 
@@ -53,8 +54,8 @@ public:
     if (!as_.isActive())
       return;
     
-    command_.linear.x = 0;
-    command_.angular.z = 0;
+    command_.x = 0;
+    command_.r = 0;
     dis_error_ = fabs(sqrt((pose_.x-msg->x)*(pose_.x-msg->x) + (pose_.y-msg->y)*(pose_.y-msg->y)));    
     heading_ = atan2(pose_.y-msg->y, pose_.x-msg->x); 
     theta_error_ = angles::normalize_angle(heading_ - msg->theta);    
@@ -67,8 +68,8 @@ public:
       double error_tol = 0.00001;
       if (fabs(theta_error_) > error_tol)
       {
-        command_.linear.x = 0;
-        command_.angular.z = a_scale*theta_error_;
+        command_.x = 0;
+        command_.r = a_scale*theta_error_;
       }
       else 
       {
@@ -81,8 +82,8 @@ public:
       double error_tol = 0.00001;
       if ((dis_error_ > error_tol) && (dis_error_ < prv_dis_error))
       {
-        command_.linear.x = l_scale*dis_error_;
-        command_.angular.z = 0;
+        command_.x = l_scale*dis_error_;
+        command_.r = 0;
         prv_dis_error = dis_error_;
       }
       else
@@ -104,7 +105,8 @@ protected:
   double dis_error_, theta_error_, heading_, prv_dis_error;
   bool turning_;
   turtlesim::Pose pose_;
-  geometry_msgs::Twist command_;
+  // geometry_msgs::Twist command_;
+  mavros_msgs::ManualControl command_;
   rov_actionlib::PoseResult result_;
   ros::Subscriber sub_;
   ros::Publisher pub_;
