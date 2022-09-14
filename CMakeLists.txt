@@ -13,16 +13,17 @@ find_package(catkin REQUIRED
     std_msgs
     turtlesim
     geometry_msgs
+    sensor_msgs
 )
 
 ## Add message definitions
 # add_message_files(DIRECTORY msg FILES Velocity.msg)
 
 ## Add action definitions
-add_action_files(DIRECTORY action FILES Shape.action Pose.action)
+add_action_files(DIRECTORY action FILES Shape.action Pose.action GPSLocation.action)
 
 ## Generate messages and actions
-generate_messages(DEPENDENCIES std_msgs geometry_msgs turtlesim actionlib_msgs)
+generate_messages(DEPENDENCIES std_msgs geometry_msgs turtlesim actionlib_msgs sensor_msgs)
 
 ## Setup catkin exports
 catkin_package()
