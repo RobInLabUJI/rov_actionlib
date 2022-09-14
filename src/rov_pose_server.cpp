@@ -122,13 +122,16 @@ public:
       else 
       {
         turning_ = false;
+        dis_error_threshold_ = dis_error_ / 2;
       }
     }
     else
     {
       double l_scale = 6.0;
       double error_tol = 0.00001;
-      if ((dis_error_ > error_tol) && (dis_error_ < prv_dis_error_))
+      if ((dis_error_ > error_tol) && 
+          (dis_error_ < prv_dis_error_) &&
+          (dis_error_ > dis_error_threshold_))
       {
         command_.x = 0; // l_scale*dis_error_;
         command_.r = 0;
@@ -136,10 +139,15 @@ public:
       }
       else
       {
-        ROS_INFO("%s: Succeeded", action_name_.c_str());
-        // set the action state to succeeded
-        result_.dis_error = dis_error_;
-        as_.setSucceeded(result_);
+        if (dis_error_ <= error_tol)
+        {
+          ROS_INFO("%s: Succeeded", action_name_.c_str());
+          // set the action state to succeeded
+          result_.dis_error = dis_error_;
+          as_.setSucceeded(result_);
+        } else {
+          turning_ = true;
+        }
       }
     }
     pub_.publish(command_);
@@ -150,7 +158,7 @@ protected:
   ros::NodeHandle nh_;
   actionlib::SimpleActionServer<rov_actionlib::GPSLocationAction> as_;
   std::string action_name_;
-  double dis_error_, theta_error_, heading_, prv_dis_error_;
+  double dis_error_, theta_error_, heading_, prv_dis_error_, dis_error_threshold_;
   bool turning_;
   double altitude_, latitude_, longitude_;
   double orientation_;
