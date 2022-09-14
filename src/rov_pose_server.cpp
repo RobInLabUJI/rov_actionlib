@@ -1,11 +1,9 @@
 #include <ros/ros.h>
-//#include <turtlesim/Pose.h>
 #include <actionlib/server/simple_action_server.h>
 #include <cmath>
 #include <math.h>
 #include <angles/angles.h>
 
-//#include <geometry_msgs/Twist.h>
 #include <mavros_msgs/ManualControl.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <sensor_msgs/Imu.h>
@@ -23,10 +21,8 @@ public:
     as_.registerPreemptCallback(boost::bind(&PoseAction::preemptCB, this));
 
     //subscribe to the data topic of interest
-    // sub_ = nh_.subscribe("/turtle1/pose", 1, &PoseAction::controlCB, this);
     sub_ = nh_.subscribe("/mavros/global_position/global", 1, &PoseAction::controlCB, this);
     sub_imu_ = nh_.subscribe("/mavros/imu/data", 1, &PoseAction::imuCB, this);
-    // pub_ = nh_.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel", 1);
     pub_ = nh_.advertise<mavros_msgs::ManualControl>("/mavros/manual_control/send", 1);
     as_.start();
   }
@@ -54,6 +50,10 @@ public:
 
   void imuCB(const sensor_msgs::Imu::ConstPtr& msg)
   {
+    ROS_INFO("imu_data.orientation.x: %f", msg->orientation.x);
+    ROS_INFO("imu_data.orientation.y: %f", msg->orientation.y);
+    ROS_INFO("imu_data.orientation.z: %f", msg->orientation.z);
+    ROS_INFO("imu_data.orientation.w: %f", msg->orientation.w);
   }
 
   void controlCB(const sensor_msgs::NavSatFix::ConstPtr& msg)
@@ -68,6 +68,10 @@ public:
     latitude_ = msg->latitude;
     longitude_ = msg->longitude;
     
+    ROS_INFO("altitude: %f", altitude_);
+    ROS_INFO("latitude: %f", latitude_);
+    ROS_INFO("longitude: %f", longitude_);
+        
     // dis_error_ = fabs(sqrt((pose_.x-msg->x)*(pose_.x-msg->x) + (pose_.y-msg->y)*(pose_.y-msg->y)));    
     dis_error_ = 0;
     // heading_ = atan2(pose_.y-msg->y, pose_.x-msg->x); 
@@ -83,7 +87,7 @@ public:
       if (fabs(theta_error_) > error_tol)
       {
         command_.x = 0;
-        command_.r = a_scale*theta_error_;
+        command_.r = 0; // a_scale*theta_error_;
       }
       else 
       {
@@ -96,7 +100,7 @@ public:
       double error_tol = 0.00001;
       if ((dis_error_ > error_tol) && (dis_error_ < prv_dis_error))
       {
-        command_.x = l_scale*dis_error_;
+        command_.x = 0; // l_scale*dis_error_;
         command_.r = 0;
         prv_dis_error = dis_error_;
       }
@@ -119,8 +123,6 @@ protected:
   double dis_error_, theta_error_, heading_, prv_dis_error;
   bool turning_;
   double altitude_, latitude_, longitude_;
-  // turtlesim::Pose pose_;
-  // geometry_msgs::Twist command_;
   mavros_msgs::ManualControl command_;
   rov_actionlib::PoseResult result_;
   ros::Subscriber sub_, sub_imu_;
