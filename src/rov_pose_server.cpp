@@ -8,6 +8,7 @@
 //#include <geometry_msgs/Twist.h>
 #include <mavros_msgs/ManualControl.h>
 #include <sensor_msgs/NavSatFix.h>
+#include <sensor_msgs/Imu.h>
 #include <rov_actionlib/PoseAction.h>
 
 class PoseAction
@@ -24,6 +25,7 @@ public:
     //subscribe to the data topic of interest
     // sub_ = nh_.subscribe("/turtle1/pose", 1, &PoseAction::controlCB, this);
     sub_ = nh_.subscribe("/mavros/global_position/global", 1, &PoseAction::controlCB, this);
+    sub_imu_ = nh_.subscribe("/mavros/imu/data", 1, &PoseAction::imuCB, this);
     // pub_ = nh_.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel", 1);
     pub_ = nh_.advertise<mavros_msgs::ManualControl>("/mavros/manual_control/send", 1);
     as_.start();
@@ -48,6 +50,10 @@ public:
     ROS_INFO("%s: Preempted", action_name_.c_str());
     // set the action state to preempted
     as_.setPreempted();
+  }
+
+  void imuCB(const sensor_msgs::Imu::ConstPtr& msg)
+  {
   }
 
   void controlCB(const sensor_msgs::NavSatFix::ConstPtr& msg)
@@ -117,7 +123,7 @@ protected:
   // geometry_msgs::Twist command_;
   mavros_msgs::ManualControl command_;
   rov_actionlib::PoseResult result_;
-  ros::Subscriber sub_;
+  ros::Subscriber sub_, sub_imu_;
   ros::Publisher pub_;
 };
 
