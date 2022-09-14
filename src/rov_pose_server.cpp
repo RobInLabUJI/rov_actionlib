@@ -8,7 +8,6 @@
 #include <mavros_msgs/ManualControl.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <sensor_msgs/Imu.h>
-//#include <rov_actionlib/PoseAction.h>
 #include <rov_actionlib/GPSLocationAction.h>
 
 void LatLng2GlobalXY(double lat, double lng, double& x, double& y)
@@ -50,7 +49,6 @@ public:
     // accept the new goal
     rov_actionlib::GPSLocationGoal goal = *as_.acceptNewGoal();
 
-    // pose_ = goal.pose;
     double lat = goal.location.latitude;
     double lng = goal.location.longitude;
     LatLng2GlobalXY(lat, lng, goalX_, goalY_);
