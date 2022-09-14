@@ -84,12 +84,14 @@ public:
 
   void controlCB(const sensor_msgs::NavSatFix::ConstPtr& msg)
   {
+    double G_ROV_DEFAULT_SPEED = 500.0;
     // make sure that the action hasn't been canceled
     if (!as_.isActive())
       return;
     
     command_.x = 0;
     command_.r = 0;
+
     altitude_ = msg->altitude;
     latitude_ = msg->latitude;
     longitude_ = msg->longitude;
@@ -108,14 +110,19 @@ public:
     ROS_INFO("Dist error: %f", dis_error_);
     ROS_INFO("Heading: %f", heading_);
     ROS_INFO("Theta error: %f", theta_error_);
+
     if (turning_)
     {
       double a_scale = 6.0;
       double error_tol = 0.00001;
       if (fabs(theta_error_) > error_tol)
       {
-        command_.x = 0;
-        command_.r = 0; // a_scale*theta_error_;
+        if (theta_error_ >= 0)
+        {
+          command_.r = G_ROV_DEFAULT_SPEED;
+        } else {
+          command_.r = -G_ROV_DEFAULT_SPEED;
+        }
       }
       else 
       {
@@ -131,8 +138,8 @@ public:
           (dis_error_ < prv_dis_error_) &&
           (dis_error_ > dis_error_threshold_))
       {
-        command_.x = 0; // l_scale*dis_error_;
-        command_.r = 0;
+        // command_.x = 0; // l_scale*dis_error_;
+        command_.x = G_ROV_DEFAULT_SPEED; 
         prv_dis_error_ = dis_error_;
       }
       else
@@ -148,8 +155,9 @@ public:
         }
       }
     }
-    pub_.publish(command_);
-
+    ROS_INFO("command_.x: %f", command_.x);
+    ROS_INFO("command_.r: %f", command_.r);
+    // pub_.publish(command_);
   }
 
 protected:
