@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include <turtlesim/Pose.h>
+//#include <turtlesim/Pose.h>
 #include <actionlib/server/simple_action_server.h>
 #include <cmath>
 #include <math.h>
@@ -7,6 +7,7 @@
 
 //#include <geometry_msgs/Twist.h>
 #include <mavros_msgs/ManualControl.h>
+#include <sensor_msgs/NavSatFix.h>
 #include <rov_actionlib/PoseAction.h>
 
 class PoseAction
@@ -21,7 +22,8 @@ public:
     as_.registerPreemptCallback(boost::bind(&PoseAction::preemptCB, this));
 
     //subscribe to the data topic of interest
-    sub_ = nh_.subscribe("/turtle1/pose", 1, &PoseAction::controlCB, this);
+    // sub_ = nh_.subscribe("/turtle1/pose", 1, &PoseAction::controlCB, this);
+    sub_ = nh_.subscribe("/mavros/global_position/global", 1, &PoseAction::controlCB, this);
     // pub_ = nh_.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel", 1);
     pub_ = nh_.advertise<mavros_msgs::ManualControl>("/mavros/manual_control/send", 1);
     as_.start();
@@ -36,7 +38,7 @@ public:
     // accept the new goal
     rov_actionlib::PoseGoal goal = *as_.acceptNewGoal();
 
-    pose_ = goal.pose;
+    // pose_ = goal.pose;
     turning_ = true;
     prv_dis_error = 1000000;
   }
@@ -48,7 +50,7 @@ public:
     as_.setPreempted();
   }
 
-  void controlCB(const turtlesim::Pose::ConstPtr& msg)
+  void controlCB(const sensor_msgs::NavSatFix::ConstPtr& msg)
   {
     // make sure that the action hasn't been canceled
     if (!as_.isActive())
@@ -56,12 +58,18 @@ public:
     
     command_.x = 0;
     command_.r = 0;
-    dis_error_ = fabs(sqrt((pose_.x-msg->x)*(pose_.x-msg->x) + (pose_.y-msg->y)*(pose_.y-msg->y)));    
-    heading_ = atan2(pose_.y-msg->y, pose_.x-msg->x); 
-    theta_error_ = angles::normalize_angle(heading_ - msg->theta);    
-    ROS_INFO("Dist error: %f", dis_error_);
-    ROS_INFO("Heading: %f", heading_);
-    ROS_INFO("Theta error: %f", theta_error_);
+    altitude_ = msg->altitude;
+    latitude_ = msg->latitude;
+    longitude_ = msg->longitude;
+    
+    // dis_error_ = fabs(sqrt((pose_.x-msg->x)*(pose_.x-msg->x) + (pose_.y-msg->y)*(pose_.y-msg->y)));    
+    dis_error_ = 0;
+    // heading_ = atan2(pose_.y-msg->y, pose_.x-msg->x); 
+    // theta_error_ = angles::normalize_angle(heading_ - msg->theta);    
+    theta_error_ = 0;
+    // ROS_INFO("Dist error: %f", dis_error_);
+    // ROS_INFO("Heading: %f", heading_);
+    // ROS_INFO("Theta error: %f", theta_error_);
     if (turning_)
     {
       double a_scale = 6.0;
@@ -104,7 +112,8 @@ protected:
   std::string action_name_;
   double dis_error_, theta_error_, heading_, prv_dis_error;
   bool turning_;
-  turtlesim::Pose pose_;
+  double altitude_, latitude_, longitude_;
+  // turtlesim::Pose pose_;
   // geometry_msgs::Twist command_;
   mavros_msgs::ManualControl command_;
   rov_actionlib::PoseResult result_;
