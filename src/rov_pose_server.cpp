@@ -3,40 +3,58 @@
 #include <cmath>
 #include <math.h>
 #include <angles/angles.h>
+#include <tf/tf.h>
 
 #include <mavros_msgs/ManualControl.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <sensor_msgs/Imu.h>
-#include <rov_actionlib/PoseAction.h>
+//#include <rov_actionlib/PoseAction.h>
+#include <rov_actionlib/GPSLocationAction.h>
 
-class PoseAction
+void LatLng2GlobalXY(double lat, double lng, double& x, double& y)
+{
+  double EarthRadius = 6371000;
+  double lat0 = 40.0 * M_PI / 180.0;
+  
+  // Equirectangular projection
+  // https://stackoverflow.com/questions/16266809/convert-from-latitude-longitude-to-x-y
+  x = EarthRadius * lng * cos(lat0);
+  y = EarthRadius * lat;
+}
+
+class GPSLocationAction
 {
 public:
-  PoseAction(std::string name) : 
+  GPSLocationAction(std::string name) : 
     as_(nh_, name, false),
     action_name_(name)
   {
     //register the goal and feeback callbacks
-    as_.registerGoalCallback(boost::bind(&PoseAction::goalCB, this));
-    as_.registerPreemptCallback(boost::bind(&PoseAction::preemptCB, this));
+    as_.registerGoalCallback(boost::bind(&GPSLocationAction::goalCB, this));
+    as_.registerPreemptCallback(boost::bind(&GPSLocationAction::preemptCB, this));
 
     //subscribe to the data topic of interest
-    sub_ = nh_.subscribe("/mavros/global_position/global", 1, &PoseAction::controlCB, this);
-    sub_imu_ = nh_.subscribe("/mavros/imu/data", 1, &PoseAction::imuCB, this);
+    sub_ = nh_.subscribe("/mavros/global_position/global", 1, &GPSLocationAction::controlCB, this);
+    sub_imu_ = nh_.subscribe("/mavros/imu/data", 1, &GPSLocationAction::imuCB, this);
     pub_ = nh_.advertise<mavros_msgs::ManualControl>("/mavros/manual_control/send", 1);
+    
     as_.start();
   }
 
-  ~PoseAction(void)
+  ~GPSLocationAction(void)
   {
   }
 
   void goalCB()
   {
     // accept the new goal
-    rov_actionlib::PoseGoal goal = *as_.acceptNewGoal();
+    rov_actionlib::GPSLocationGoal goal = *as_.acceptNewGoal();
 
     // pose_ = goal.pose;
+    double lat = goal.location.latitude;
+    double lng = goal.location.longitude;
+    LatLng2GlobalXY(lat, lng, goalX_, goalY_);
+
     turning_ = true;
     prv_dis_error = 1000000;
   }
@@ -54,6 +72,16 @@ public:
     ROS_INFO("imu_data.orientation.y: %f", msg->orientation.y);
     ROS_INFO("imu_data.orientation.z: %f", msg->orientation.z);
     ROS_INFO("imu_data.orientation.w: %f", msg->orientation.w);
+    tf::Quaternion q(
+        msg->orientation.x,
+        msg->orientation.y,
+        msg->orientation.z,
+        msg->orientation.w);
+    tf::Matrix3x3 m(q);
+    double roll, pitch, yaw;
+    m.getRPY(roll, pitch, yaw);
+    orientation_ = yaw;
+    ROS_INFO("Yaw angle: %f", orientation_);    
   }
 
   void controlCB(const sensor_msgs::NavSatFix::ConstPtr& msg)
@@ -71,15 +99,17 @@ public:
     ROS_INFO("altitude: %f", altitude_);
     ROS_INFO("latitude: %f", latitude_);
     ROS_INFO("longitude: %f", longitude_);
-        
-    // dis_error_ = fabs(sqrt((pose_.x-msg->x)*(pose_.x-msg->x) + (pose_.y-msg->y)*(pose_.y-msg->y)));    
-    dis_error_ = 0;
-    // heading_ = atan2(pose_.y-msg->y, pose_.x-msg->x); 
-    // theta_error_ = angles::normalize_angle(heading_ - msg->theta);    
-    theta_error_ = 0;
-    // ROS_INFO("Dist error: %f", dis_error_);
-    // ROS_INFO("Heading: %f", heading_);
-    // ROS_INFO("Theta error: %f", theta_error_);
+    
+    double x, y;
+    LatLng2GlobalXY(latitude_, longitude_, x, y);
+    
+    dis_error_ = fabs(sqrt((goalX_-x)*(goalX_-x) + (goalY_-y)*(goalY_-y)));    
+    heading_ = atan2(goalY_-y, goalX_-x); 
+    theta_error_ = angles::normalize_angle(heading_ - orientation_);    
+
+    ROS_INFO("Dist error: %f", dis_error_);
+    ROS_INFO("Heading: %f", heading_);
+    ROS_INFO("Theta error: %f", theta_error_);
     if (turning_)
     {
       double a_scale = 6.0;
@@ -118,13 +148,15 @@ public:
 
 protected:
   ros::NodeHandle nh_;
-  actionlib::SimpleActionServer<rov_actionlib::PoseAction> as_;
+  actionlib::SimpleActionServer<rov_actionlib::GPSLocationAction> as_;
   std::string action_name_;
   double dis_error_, theta_error_, heading_, prv_dis_error;
   bool turning_;
   double altitude_, latitude_, longitude_;
+  double orientation_;
+  double goalX_, goalY_;
   mavros_msgs::ManualControl command_;
-  rov_actionlib::PoseResult result_;
+  rov_actionlib::GPSLocationResult result_;
   ros::Subscriber sub_, sub_imu_;
   ros::Publisher pub_;
 };
@@ -133,7 +165,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "rov_pose");
 
-  PoseAction shape(ros::this_node::getName());
+  GPSLocationAction gpsLoc(ros::this_node::getName());
   ros::spin();
 
   return 0;
