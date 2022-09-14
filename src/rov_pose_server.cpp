@@ -56,7 +56,7 @@ public:
     LatLng2GlobalXY(lat, lng, goalX_, goalY_);
 
     turning_ = true;
-    prv_dis_error = 1000000;
+    prv_dis_error_ = 1000000;
   }
 
   void preemptCB()
@@ -128,11 +128,11 @@ public:
     {
       double l_scale = 6.0;
       double error_tol = 0.00001;
-      if ((dis_error_ > error_tol) && (dis_error_ < prv_dis_error))
+      if ((dis_error_ > error_tol) && (dis_error_ < prv_dis_error_))
       {
         command_.x = 0; // l_scale*dis_error_;
         command_.r = 0;
-        prv_dis_error = dis_error_;
+        prv_dis_error_ = dis_error_;
       }
       else
       {
@@ -150,7 +150,7 @@ protected:
   ros::NodeHandle nh_;
   actionlib::SimpleActionServer<rov_actionlib::GPSLocationAction> as_;
   std::string action_name_;
-  double dis_error_, theta_error_, heading_, prv_dis_error;
+  double dis_error_, theta_error_, heading_, prv_dis_error_;
   bool turning_;
   double altitude_, latitude_, longitude_;
   double orientation_;
