@@ -66,10 +66,10 @@ public:
 
   void imuCB(const sensor_msgs::Imu::ConstPtr& msg)
   {
-    ROS_INFO("imu_data.orientation.x: %f", msg->orientation.x);
-    ROS_INFO("imu_data.orientation.y: %f", msg->orientation.y);
-    ROS_INFO("imu_data.orientation.z: %f", msg->orientation.z);
-    ROS_INFO("imu_data.orientation.w: %f", msg->orientation.w);
+    //ROS_INFO("imu_data.orientation.x: %f", msg->orientation.x);
+    //ROS_INFO("imu_data.orientation.y: %f", msg->orientation.y);
+    //ROS_INFO("imu_data.orientation.z: %f", msg->orientation.z);
+    //ROS_INFO("imu_data.orientation.w: %f", msg->orientation.w);
     tf::Quaternion q(
         msg->orientation.x,
         msg->orientation.y,
@@ -79,15 +79,15 @@ public:
     double roll, pitch, yaw;
     m.getRPY(roll, pitch, yaw);
     orientation_ = yaw;
-    ROS_INFO("Yaw angle: %f", orientation_);    
+    // ROS_INFO("Yaw angle: %f", orientation_);    
   }
 
   void controlCB(const sensor_msgs::NavSatFix::ConstPtr& msg)
   {
     double G_ROV_DEFAULT_SPEED = 500.0;
     // make sure that the action hasn't been canceled
-    if (!as_.isActive())
-      return;
+    //if (!as_.isActive())
+    //  return;
     
     command_.x = 0;
     command_.r = 0;
@@ -99,7 +99,12 @@ public:
     ROS_INFO("altitude: %f", altitude_);
     ROS_INFO("latitude: %f", latitude_);
     ROS_INFO("longitude: %f", longitude_);
+    ROS_INFO("Yaw angle: %f", orientation_);    
     
+    // make sure that the action hasn't been canceled
+    if (!as_.isActive())
+      return;
+
     double x, y;
     LatLng2GlobalXY(latitude_, longitude_, x, y);
     
@@ -157,7 +162,7 @@ public:
     }
     ROS_INFO("command_.x: %f", command_.x);
     ROS_INFO("command_.r: %f", command_.r);
-    // pub_.publish(command_);
+    pub_.publish(command_);
   }
 
 protected:
