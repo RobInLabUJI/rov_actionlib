@@ -6,7 +6,7 @@
 #include <angles/angles.h>
 
 #include <geometry_msgs/Twist.h>
-#include <turtle_actionlib/ShapeAction.h>
+#include <rov_actionlib/ShapeAction.h>
 
 // This class computes the command_velocities of the turtle to draw regular polygons 
 class ShapeAction
@@ -34,7 +34,7 @@ public:
   void goalCB()
   {
     // accept the new goal
-    turtle_actionlib::ShapeGoal goal = *as_.acceptNewGoal();
+    rov_actionlib::ShapeGoal goal = *as_.acceptNewGoal();
     //save the goal as private variables
     edges_ = goal.edges;
     radius_ = goal.radius;
@@ -119,7 +119,7 @@ public:
 
 protected:
   ros::NodeHandle nh_;
-  actionlib::SimpleActionServer<turtle_actionlib::ShapeAction> as_;
+  actionlib::SimpleActionServer<rov_actionlib::ShapeAction> as_;
   std::string action_name_;
   double radius_, apothem_, interior_angle_, side_len_;
   double start_x_, start_y_, start_theta_;
@@ -127,7 +127,7 @@ protected:
   int edges_ , edge_progress_;
   bool start_edge_;
   geometry_msgs::Twist command_;
-  turtle_actionlib::ShapeResult result_;
+  rov_actionlib::ShapeResult result_;
   ros::Subscriber sub_;
   ros::Publisher pub_;
 };
