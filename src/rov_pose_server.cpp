@@ -17,8 +17,8 @@ void LatLng2GlobalXY(double lat, double lng, double& x, double& y)
   
   // Equirectangular projection
   // https://stackoverflow.com/questions/16266809/convert-from-latitude-longitude-to-x-y
-  x = EarthRadius * lng * cos(lat0);
-  y = EarthRadius * lat;
+  x = EarthRadius * lng * M_PI / 180.0 * cos(lat0);
+  y = EarthRadius * lat * M_PI / 180.0;
 }
 
 class GPSLocationAction
@@ -55,6 +55,7 @@ public:
 
     turning_ = true;
     prv_dis_error_ = 1000000;
+    ROS_INFO("NEW GOAL");
   }
 
   void preemptCB()
