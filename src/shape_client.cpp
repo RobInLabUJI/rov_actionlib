@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
-#include <turtle_actionlib/ShapeAction.h>
+#include <rov_actionlib/ShapeAction.h>
 
 int main (int argc, char **argv)
 {
@@ -9,7 +9,7 @@ int main (int argc, char **argv)
 
   // create the action client
   // true causes the client to spin it's own thread
-  actionlib::SimpleActionClient<turtle_actionlib::ShapeAction> ac("turtle_shape", true); 
+  actionlib::SimpleActionClient<rov_actionlib::ShapeAction> ac("turtle_shape", true); 
 
   ROS_INFO("Waiting for action server to start.");
   // wait for the action server to start
@@ -17,7 +17,7 @@ int main (int argc, char **argv)
  
   ROS_INFO("Action server started, sending goal.");
   // send a goal to the action 
-  turtle_actionlib::ShapeGoal goal;
+  rov_actionlib::ShapeGoal goal;
   goal.edges = 5;
   goal.radius = 1.3;
   ac.sendGoal(goal);
