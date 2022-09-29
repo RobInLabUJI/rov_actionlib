@@ -12,11 +12,15 @@
 
 void LatLng2GlobalXY(double lat, double lng, double& x, double& y)
 {
+  // Input: lat, lng in degrees
+  // Output: x, y in meters (longitude, latitude)
+   
   double EarthRadius = 6371000;
   double lat0 = 40.0 * M_PI / 180.0;
   
   // Equirectangular projection
   // https://stackoverflow.com/questions/16266809/convert-from-latitude-longitude-to-x-y
+  // https://stackoverflow.com/questions/1253499/simple-calculations-for-working-with-lat-lon-and-km-distance
   x = EarthRadius * lng * M_PI / 180.0 * cos(lat0);
   y = EarthRadius * lat * M_PI / 180.0;
 }
@@ -49,9 +53,8 @@ public:
     // accept the new goal
     rov_actionlib::GPSLocationGoal goal = *as_.acceptNewGoal();
 
-    double lat = goal.location.latitude;
-    double lng = goal.location.longitude;
-    LatLng2GlobalXY(lat, lng, goalX_, goalY_);
+    goalLat_ = goal.location.latitude;
+    goalLng_ = goal.location.longitude;
 
     turning_ = true;
     prv_dis_error_ = 1000000;
@@ -97,7 +100,7 @@ public:
     latitude_ = msg->latitude;
     longitude_ = msg->longitude;
     
-    ROS_INFO("altitude: %f", altitude_);
+    // ROS_INFO("altitude: %f", altitude_);
     ROS_INFO("latitude: %f", latitude_);
     ROS_INFO("longitude: %f", longitude_);
     ROS_INFO("Yaw angle: %f", orientation_);    
@@ -107,10 +110,10 @@ public:
       return;
 
     double x, y;
-    LatLng2GlobalXY(latitude_, longitude_, x, y);
+    LatLng2GlobalXY(goalLat_-latitude_, goalLng_-longitude_, x, y);
     
-    dis_error_ = fabs(sqrt((goalX_-x)*(goalX_-x) + (goalY_-y)*(goalY_-y)));    
-    heading_ = atan2(goalY_-y, goalX_-x); 
+    dis_error_ = fabs(sqrt(x*x + y*y));    
+    heading_ = atan2(y, x); 
     theta_error_ = angles::normalize_angle(heading_ - orientation_);    
 
     ROS_INFO("Dist error: %f", dis_error_);
@@ -120,7 +123,7 @@ public:
     if (turning_)
     {
       double a_scale = 6.0;
-      double error_tol = 0.00001;
+      double error_tol = 0.1;
       if (fabs(theta_error_) > error_tol)
       {
         if (theta_error_ >= 0)
@@ -139,7 +142,7 @@ public:
     else
     {
       double l_scale = 6.0;
-      double error_tol = 0.00001;
+      double error_tol = 10;
       if ((dis_error_ > error_tol) && 
           (dis_error_ < prv_dis_error_) &&
           (dis_error_ > dis_error_threshold_))
@@ -174,7 +177,7 @@ protected:
   bool turning_;
   double altitude_, latitude_, longitude_;
   double orientation_;
-  double goalX_, goalY_;
+  double goalLng_, goalLat_;
   mavros_msgs::ManualControl command_;
   rov_actionlib::GPSLocationResult result_;
   ros::Subscriber sub_, sub_imu_;
