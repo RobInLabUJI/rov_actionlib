@@ -88,7 +88,7 @@ public:
 
   void controlCB(const sensor_msgs::NavSatFix::ConstPtr& msg)
   {
-    double G_ROV_DEFAULT_SPEED = 500.0;
+    double G_ROV_DEFAULT_SPEED = 200.0;
     // make sure that the action hasn't been canceled
     //if (!as_.isActive())
     //  return;
