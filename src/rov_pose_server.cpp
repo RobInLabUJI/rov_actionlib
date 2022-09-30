@@ -128,9 +128,9 @@ public:
       {
         if (theta_error_ >= 0)
         {
-          command_.r = G_ROV_DEFAULT_SPEED;
-        } else {
           command_.r = -G_ROV_DEFAULT_SPEED;
+        } else {
+          command_.r = G_ROV_DEFAULT_SPEED;
         }
       }
       else 
