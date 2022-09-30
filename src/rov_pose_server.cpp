@@ -113,7 +113,7 @@ public:
     LatLng2GlobalXY(goalLat_-latitude_, goalLng_-longitude_, x, y);
     
     dis_error_ = fabs(sqrt(x*x + y*y));    
-    heading_ = atan2(y, x); 
+    heading_ = 0; // atan2(y, x); 
     theta_error_ = angles::normalize_angle(heading_ - orientation_);    
 
     ROS_INFO("Dist error: %f", dis_error_);
