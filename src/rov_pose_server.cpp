@@ -113,7 +113,9 @@ public:
     LatLng2GlobalXY(goalLat_-latitude_, goalLng_-longitude_, x, y);
     
     dis_error_ = fabs(sqrt(x*x + y*y));    
-    heading_ = 0; // atan2(y, x); 
+    //  heading_ = -M_PI/2.0;  
+    // heading_ = 0.0; // atan2(y, x); 
+    heading_ = M_PI/2.0;  
     theta_error_ = angles::normalize_angle(heading_ - orientation_);    
 
     ROS_INFO("Dist error: %f", dis_error_);
@@ -123,7 +125,7 @@ public:
     if (turning_)
     {
       double a_scale = 6.0;
-      double error_tol = 0.1;
+      double error_tol = 0.002;
       if (fabs(theta_error_) > error_tol)
       {
         if (theta_error_ >= 0)
@@ -144,7 +146,7 @@ public:
       double l_scale = 6.0;
       double error_tol = 10;
       if ((dis_error_ > error_tol) && 
-          (dis_error_ < prv_dis_error_) &&
+          //(dis_error_ < prv_dis_error_) &&
           (dis_error_ > dis_error_threshold_))
       {
         // command_.x = 0; // l_scale*dis_error_;
