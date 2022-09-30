@@ -103,7 +103,7 @@ public:
     // ROS_INFO("altitude: %f", altitude_);
     ROS_INFO("latitude: %f", latitude_);
     ROS_INFO("longitude: %f", longitude_);
-    ROS_INFO("Yaw angle: %f", orientation_*180.0/M_PI);    
+    ROS_INFO("Yaw angle: %.1f", orientation_*180.0/M_PI);    
     
     // make sure that the action hasn't been canceled
     if (!as_.isActive())
